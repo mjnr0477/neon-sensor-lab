@@ -896,3 +896,12 @@ renderSessionHistory();
   update();
   renderHistory();
 })();
+
+/* Public bridge for the research engine.
+   Raw measurements remain local to this browser session. */
+window.NeonSensorLab = {
+  getState: () => state,
+  getSession: () => buildSessionPayload(),
+  analyze: () => analyzeSession(),
+  windows: () => buildTimeWindows(5000)
+};

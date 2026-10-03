@@ -279,3 +279,11 @@ video {
     grid-template-columns: 1fr;
   }
 }
+
+#research-export {
+  margin-top: 18px;
+}
+
+#research-summary {
+  margin-bottom: 18px;
+}
