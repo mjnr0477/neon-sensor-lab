@@ -143,3 +143,139 @@ video {
     border-radius: 20px;
   }
 }
+
+/* Signal Intelligence layer */
+.intelligence-panel {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid #263b56;
+  border-radius: 26px;
+  background: rgba(8, 16, 29, .86);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .22);
+}
+
+.intelligence-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.intelligence-header h2 {
+  margin: 5px 0;
+}
+
+.intelligence-subtitle {
+  margin: 0;
+  color: #9eafc5;
+}
+
+.intelligence-badge {
+  padding: 8px 12px;
+  border: 1px solid #31506f;
+  border-radius: 999px;
+  color: #b9d5ef;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.intelligence-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.intelligence-metric {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #203149;
+  background: rgba(255,255,255,.025);
+}
+
+.intelligence-metric small {
+  display: block;
+  color: #8094ad;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.intelligence-metric strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 1.2rem;
+}
+
+.signal-summary {
+  margin-top: 16px;
+  padding: 16px;
+  border-left: 3px solid #5f88ad;
+  border-radius: 12px;
+  background: rgba(95,136,173,.08);
+  color: #c7d5e5;
+  line-height: 1.6;
+}
+
+.signal-chart-wrap {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #203149;
+  border-radius: 18px;
+  background: #050b14;
+}
+
+.signal-chart {
+  display: block;
+  width: 100%;
+  height: 220px;
+}
+
+.signal-history {
+  margin-top: 24px;
+}
+
+.signal-history-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.signal-history-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #203149;
+  border-radius: 16px;
+  background: rgba(255,255,255,.025);
+}
+
+.signal-history-item small {
+  display: block;
+  color: #8497ae;
+  margin-top: 4px;
+}
+
+.research-boundary {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.035);
+  color: #9eafc5;
+  font-size: .85rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 700px) {
+  .intelligence-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .signal-history-item {
+    grid-template-columns: 1fr;
+  }
+}

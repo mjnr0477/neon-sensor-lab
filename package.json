@@ -1,13 +1,21 @@
 {
   "name": "neon-sensor-lab",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "1.1.0",
+  "description": "Local-first phone sensor and Bluetooth research laboratory.",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "node --check server.js && node --check public/app.js",
+    "test": "npm run check",
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "sensors",
+    "bluetooth",
+    "ble",
+    "research",
+    "web"
+  ],
+  "author": "Mathias Simiyu",
+  "license": "MIT",
   "type": "commonjs"
 }

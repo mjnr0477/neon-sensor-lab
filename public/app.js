@@ -609,3 +609,290 @@ bluetoothButton?.addEventListener("click", async () => {
 });
 
 renderSessionHistory();
+
+/* ============================================================
+   NEON SIGNAL INTELLIGENCE
+   Uses existing sensor samples only.
+   This layer describes measurable physical signals.
+   It does NOT infer thoughts, consciousness, diagnosis, EEG,
+   emotions, or other medical/mental states.
+   ============================================================ */
+
+(function initSignalIntelligence() {
+  const root = document.querySelector('main.app') || document.body;
+
+  const panel = document.createElement('section');
+  panel.className = 'intelligence-panel';
+  panel.id = 'signal-intelligence';
+
+  panel.innerHTML = `
+    <div class="intelligence-header">
+      <div>
+        <span class="label">Signal Intelligence</span>
+        <h2>Live movement profile</h2>
+        <p class="intelligence-subtitle">
+          Descriptive analysis of the phone's measured motion signal.
+        </p>
+      </div>
+      <span class="intelligence-badge" id="si-status">READY</span>
+    </div>
+
+    <div class="intelligence-metrics">
+      <div class="intelligence-metric">
+        <small>Movement</small>
+        <strong id="si-level">No data</strong>
+      </div>
+      <div class="intelligence-metric">
+        <small>Mean magnitude</small>
+        <strong id="si-mean">—</strong>
+      </div>
+      <div class="intelligence-metric">
+        <small>Peak magnitude</small>
+        <strong id="si-peak">—</strong>
+      </div>
+      <div class="intelligence-metric">
+        <small>Variability</small>
+        <strong id="si-variability">—</strong>
+      </div>
+    </div>
+
+    <div class="signal-chart-wrap">
+      <canvas class="signal-chart" id="si-chart" width="900" height="220"></canvas>
+    </div>
+
+    <div class="signal-summary" id="si-summary">
+      Start a signal session to build a measurable movement profile.
+    </div>
+
+    <div class="research-boundary">
+      <strong>Research boundary:</strong>
+      this system analyzes phone sensor measurements. It does not read
+      thoughts, brain activity, consciousness, EEG, or diagnose a medical
+      or psychological condition.
+    </div>
+
+    <div class="signal-history">
+      <span class="label">Local session intelligence</span>
+      <div class="signal-history-list" id="si-history"></div>
+    </div>
+  `;
+
+  root.appendChild(panel);
+
+  const els = {
+    status: document.getElementById('si-status'),
+    level: document.getElementById('si-level'),
+    mean: document.getElementById('si-mean'),
+    peak: document.getElementById('si-peak'),
+    variability: document.getElementById('si-variability'),
+    summary: document.getElementById('si-summary'),
+    chart: document.getElementById('si-chart'),
+    history: document.getElementById('si-history')
+  };
+
+  function motionSamples() {
+    if (!Array.isArray(state.samples)) return [];
+
+    return state.samples
+      .filter(sample => sample.type === 'motion')
+      .map(sample => {
+        const x = Number(sample.x) || 0;
+        const y = Number(sample.y) || 0;
+        const z = Number(sample.z) || 0;
+
+        return {
+          timestamp: sample.timestamp,
+          magnitude: Math.sqrt(x * x + y * y + z * z)
+        };
+      })
+      .filter(sample => Number.isFinite(sample.magnitude));
+  }
+
+  function statistics(values) {
+    if (!values.length) {
+      return {
+        mean: 0,
+        peak: 0,
+        variability: 0
+      };
+    }
+
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const peak = Math.max(...values);
+
+    const variance =
+      values.reduce((sum, value) => sum + ((value - mean) ** 2), 0) /
+      values.length;
+
+    return {
+      mean,
+      peak,
+      variability: Math.sqrt(variance)
+    };
+  }
+
+  function movementLevel(mean) {
+    if (mean < 1.5) return 'LOWER';
+    if (mean < 4) return 'MODERATE';
+    return 'HIGHER';
+  }
+
+  function variabilityLabel(value, mean) {
+    if (!mean) return '—';
+
+    const ratio = value / mean;
+
+    if (ratio < 0.2) return 'LOW';
+    if (ratio < 0.5) return 'MODERATE';
+    return 'HIGH';
+  }
+
+  function drawChart(values) {
+    const canvas = els.chart;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const width = Math.max(320, Math.floor(rect.width || 900));
+    const height = 220;
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#203149';
+    ctx.lineWidth = 1;
+
+    for (let y = 30; y < height; y += 45) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    if (!values.length) return;
+
+    const visible = values.slice(-160);
+    const max = Math.max(...visible, 1);
+
+    ctx.beginPath();
+
+    visible.forEach((value, index) => {
+      const x = visible.length === 1
+        ? width / 2
+        : (index / (visible.length - 1)) * width;
+
+      const y = height - 18 - ((value / max) * (height - 42));
+
+      if (index === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+
+    ctx.strokeStyle = '#8bb7df';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function update() {
+    const samples = motionSamples();
+    const values = samples.map(sample => sample.magnitude);
+    const stats = statistics(values);
+
+    els.mean.textContent = values.length ? stats.mean.toFixed(3) : '—';
+    els.peak.textContent = values.length ? stats.peak.toFixed(3) : '—';
+    els.variability.textContent = values.length
+      ? variabilityLabel(stats.variability, stats.mean)
+      : '—';
+
+    if (!values.length) {
+      els.level.textContent = 'No data';
+      els.status.textContent = state.recording ? 'RECORDING' : 'READY';
+      els.summary.textContent =
+        'Start a signal session and move the phone naturally to collect measurements.';
+      drawChart([]);
+      return;
+    }
+
+    const level = movementLevel(stats.mean);
+    const variability = variabilityLabel(stats.variability, stats.mean);
+
+    els.level.textContent = level;
+    els.status.textContent = state.recording ? 'RECORDING' : 'ANALYZED';
+
+    els.summary.textContent =
+      `${level.charAt(0) + level.slice(1).toLowerCase()} measured movement with ` +
+      `${samples.length} motion samples. Signal variability is ${variability.toLowerCase()}. ` +
+      `This is a description of the measured sensor signal, not an interpretation of mental state.`;
+
+    drawChart(values);
+  }
+
+  function renderHistory() {
+    let sessions = [];
+
+    try {
+      sessions = JSON.parse(
+        localStorage.getItem('neon-sensor-lab-sessions') || '[]'
+      );
+    } catch {
+      sessions = [];
+    }
+
+    if (!Array.isArray(sessions) || !sessions.length) {
+      els.history.innerHTML =
+        '<div class="signal-history-item">No saved sessions yet.</div>';
+      return;
+    }
+
+    els.history.innerHTML = sessions.slice(0, 8).map(session => {
+      const analysis = session.analysis || {};
+      const count =
+        analysis.motionSamples ??
+        analysis.sampleCount ??
+        session.samples?.filter(s => s.type === 'motion').length ??
+        0;
+
+      const date = session.session?.startedAt ||
+        session.startedAt ||
+        session.createdAt ||
+        'Unknown time';
+
+      return `
+        <div class="signal-history-item">
+          <div>
+            <strong>${escapeHTML(String(date))}</strong>
+            <small>${count} motion samples</small>
+          </div>
+          <strong>${escapeHTML(String(
+            analysis.meanMotion ??
+            analysis.mean ??
+            '—'
+          ))}</strong>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function escapeHTML(value) {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  window.addEventListener('resize', update);
+
+  setInterval(update, 250);
+  setInterval(renderHistory, 1000);
+
+  update();
+  renderHistory();
+})();

@@ -2,39 +2,59 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = process.env.PORT || 3000;
-const PUBLIC = path.join(__dirname, 'public');
+const PORT = Number(process.env.PORT) || 3000;
+const PUBLIC = path.resolve(__dirname, 'public');
+const PUBLIC_PREFIX = `${PUBLIC}${path.sep}`;
+
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8'
+};
+
+function safePath(requestUrl) {
+  let pathname;
+
+  try {
+    pathname = decodeURIComponent(new URL(requestUrl, 'http://localhost').pathname);
+  } catch {
+    return null;
+  }
+
+  const requested = pathname === '/' ? '/index.html' : pathname;
+  const resolved = path.resolve(PUBLIC, `.${requested}`);
+
+  if (resolved !== PUBLIC && !resolved.startsWith(PUBLIC_PREFIX)) {
+    return null;
+  }
+
+  return resolved;
+}
 
 const server = http.createServer((req, res) => {
-  const requested = req.url === '/' ? '/index.html' : req.url;
-  const file = path.join(PUBLIC, requested);
+  const file = safePath(req.url || '/');
 
-  if (!file.startsWith(PUBLIC)) {
+  if (!file) {
     res.writeHead(403);
     return res.end('Forbidden');
   }
 
   fs.readFile(file, (err, data) => {
     if (err) {
-      res.writeHead(404);
-      return res.end('Not found');
+      res.writeHead(err.code === 'ENOENT' ? 404 : 500);
+      return res.end(err.code === 'ENOENT' ? 'Not found' : 'Server error');
     }
 
-    const ext = path.extname(file);
-    const types = {
-      '.html': 'text/html; charset=utf-8',
-      '.js': 'text/javascript; charset=utf-8',
-      '.css': 'text/css; charset=utf-8',
-      '.json': 'application/json; charset=utf-8'
-    };
-
     res.writeHead(200, {
-      'Content-Type': types[ext] || 'application/octet-stream'
+      'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
+      'Cache-Control': 'no-cache'
     });
+
     res.end(data);
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Neon Sensor Lab running at http://127.0.0.1:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Neon Sensor Lab running on port ${PORT}`);
 });
