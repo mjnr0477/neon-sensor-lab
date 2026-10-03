@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>Neon Sensor Lab</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <p class="eyebrow">NEON SENSOR LAB</p>
+      <h1>Understand what your phone can measure.</h1>
+      <p class="intro">
+        A local, experimental sensor dashboard for the Neon Ray Ultra M.
+      </p>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <span class="label">Motion</span>
+        <h2 id="motion-status">Waiting for permission</h2>
+        <div class="values">
+          <div><small>X</small><strong id="acc-x">—</strong></div>
+          <div><small>Y</small><strong id="acc-y">—</strong></div>
+          <div><small>Z</small><strong id="acc-z">—</strong></div>
+        </div>
+        <button id="motion-btn">Enable motion</button>
+      </article>
+
+      <article class="card">
+        <span class="label">Orientation</span>
+        <h2 id="orientation-status">Waiting for permission</h2>
+        <div class="values">
+          <div><small>α</small><strong id="alpha">—</strong></div>
+          <div><small>β</small><strong id="beta">—</strong></div>
+          <div><small>γ</small><strong id="gamma">—</strong></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <span class="label">Camera</span>
+        <h2 id="camera-status">Not tested</h2>
+        <video id="camera" autoplay playsinline muted></video>
+        <button id="camera-btn">Test camera</button>
+      </article>
+
+      <article class="card">
+        <span class="label">Microphone</span>
+        <h2 id="mic-status">Not tested</h2>
+        <button id="mic-btn">Test microphone</button>
+      </article>
+
+      <article class="card">
+        <span class="label">Bluetooth</span>
+        <h2 id="bluetooth-status">Checking…</h2>
+        <p id="bluetooth-detail"></p>
+      </article>
+
+      <article class="card">
+        <span class="label">Device</span>
+        <h2>Neon Ray Ultra M</h2>
+        <p>Android 13</p>
+        <p id="secure-status"></p>
+      </article>
+    </section>
+
+    <section class="card recorder">
+      <span class="label">Signal session</span>
+      <h2 id="record-status">Ready</h2>
+
+      <div class="values">
+        <div>
+          <small>Samples</small>
+          <strong id="sample-count">0</strong>
+        </div>
+        <div>
+          <small>Mean motion</small>
+          <strong id="mean-motion">—</strong>
+        </div>
+        <div>
+          <small>Storage</small>
+          <strong>Local</strong>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="analysis-grid">
+          <div class="metric">
+            <span>Peak movement</span>
+            <strong id="peak-motion">—</strong>
+          </div>
+          <div class="metric">
+            <span>Movement variability</span>
+            <strong id="motion-variability">—</strong>
+          </div>
+          <div class="metric">
+            <span>Motion samples</span>
+            <strong id="motion-samples">0</strong>
+          </div>
+          <div class="metric">
+            <span>Session duration</span>
+            <strong id="session-duration">—</strong>
+          </div>
+        </div>
+
+        <button id="record-btn">Start recording</button>
+        <button id="export-btn">Export session</button>
+        <div class="history-panel">
+          <h3>Session history</h3>
+          <div id="session-history">No saved sessions yet.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="notice">
+      <strong>Experimental measurement only.</strong>
+      This app does not diagnose medical conditions and does not read thoughts,
+      EEG, or brain activity from ordinary phone sensors.
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
