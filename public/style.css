@@ -355,3 +355,122 @@ video {
     flex-direction: column;
   }
 }
+
+/* Unified research session + dataset controls */
+
+.session-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.session-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: #9eafc5;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.session-form-wide {
+  grid-column: 1 / -1;
+}
+
+.session-form-grid input,
+.session-form-grid textarea {
+  width: 100%;
+  border: 1px solid #263b56;
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #edf4ff;
+  background: #0a1423;
+  font: inherit;
+  resize: vertical;
+}
+
+.session-form-grid input:focus,
+.session-form-grid textarea:focus {
+  outline: 2px solid #5f88ad;
+  outline-offset: 1px;
+}
+
+.session-actions,
+.dataset-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.session-actions button:disabled,
+.dataset-actions button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.file-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 14px;
+  padding: 13px 16px;
+  color: #06101d;
+  background: #dbeafe;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+}
+
+.diagnostic-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.diagnostic-item {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 13px;
+  border: 1px solid #203149;
+  border-radius: 13px;
+  background: rgba(255,255,255,.025);
+}
+
+.diagnostic-item strong {
+  font-size: .72rem;
+  letter-spacing: .08em;
+}
+
+.diagnostic-ok strong {
+  color: #a7d7b1;
+}
+
+.diagnostic-muted strong {
+  color: #aebbd0;
+}
+
+.diagnostic-item span {
+  color: #9eafc5;
+  font-size: .85rem;
+}
+
+@media (max-width: 700px) {
+  .session-form-grid,
+  .session-actions,
+  .dataset-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .session-form-wide {
+    grid-column: auto;
+  }
+
+  .diagnostic-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

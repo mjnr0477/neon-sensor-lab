@@ -1,4 +1,4 @@
-const CACHE = 'neon-sensor-lab-v1';
+const CACHE = 'neon-sensor-lab-v2';
 const CORE = [
   '/',
   '/index.html',
@@ -9,6 +9,9 @@ const CORE = [
   '/ble-stream.js',
   '/sensor-source.js',
   '/session-store.js',
+  '/dataset-manager.js',
+  '/research-session.js',
+  '/research-diagnostics.js',
   '/pwa.js',
   '/manifest.webmanifest'
 ];
@@ -36,18 +39,22 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const request = event.request;
+  const isAppAsset =
+    request.url.startsWith(self.location.origin) &&
+    (request.destination === 'document' ||
+      request.destination === 'script' ||
+      request.destination === 'style' ||
+      request.destination === 'manifest');
+
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-
-          caches.open(CACHE).then(cache => {
-            cache.put(event.request, copy);
-          });
-
-          return response;
-        })
-        .catch(() => caches.match('/index.html')))
+    (isAppAsset ? fetch(request).then(response => {
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE).then(cache => cache.put(request, copy));
+      }
+      return response;
+    }) : fetch(request))
+      .catch(() => caches.match(request).then(cached => cached || caches.match('/index.html')))
   );
 });
