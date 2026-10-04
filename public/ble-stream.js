@@ -298,6 +298,7 @@
   render();
 
   window.NeonBLEStream = {
+    getEvents: () => state.events.slice(),
     getState: () => ({
       running: state.running,
       device: state.device
