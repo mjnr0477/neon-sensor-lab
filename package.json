@@ -1,10 +1,10 @@
 {
   "name": "neon-sensor-lab",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Local-first phone sensor and Bluetooth research laboratory.",
   "main": "server.js",
   "scripts": {
-    "check": "node --check server.js && node --check public/app.js && node --check public/research-engine.js && node --check public/ble-engine.js",
+    "check": "node --check server.js && node --check public/app.js && node --check public/research-engine.js && node --check public/ble-engine.js && node --check public/ble-stream.js",
     "test": "npm run check",
     "start": "node server.js"
   },
