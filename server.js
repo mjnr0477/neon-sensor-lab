@@ -55,6 +55,27 @@ const server = http.createServer((req, res) => {
   });
 });
 
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(
+      `Port ${PORT} is already in use. Stop the existing Neon Sensor Lab server or start this server with another PORT.`
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (error.code === 'EACCES') {
+    console.error(
+      `Permission denied while trying to use port ${PORT}. Try another PORT value.`
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  console.error('Neon Sensor Lab server error:', error);
+  process.exitCode = 1;
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Neon Sensor Lab running on port ${PORT}`);
 });
