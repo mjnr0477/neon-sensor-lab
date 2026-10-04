@@ -50,6 +50,8 @@
 
     if (!Array.isArray(samples)) return;
 
+    if (samples.length < state.lastPhoneSample) state.lastPhoneSample = 0;
+
     for (let i = state.lastPhoneSample; i < samples.length; i += 1) {
       const sample = samples[i];
 
@@ -71,6 +73,8 @@
     const events = ble?.getEvents?.();
 
     if (!Array.isArray(events)) return;
+
+    if (events.length < state.lastBleEvent) state.lastBleEvent = 0;
 
     for (let i = state.lastBleEvent; i < events.length; i += 1) {
       const event = events[i];
@@ -117,6 +121,11 @@
       state.lastPhoneSample = 0;
       state.lastBleEvent = 0;
     },
+    state: () => ({
+      eventCount: state.events.length,
+      lastPhoneSample: state.lastPhoneSample,
+      lastBleEvent: state.lastBleEvent
+    }),
     schema: () => ({
       name: 'neon-sensor-event',
       version: '1.0',
