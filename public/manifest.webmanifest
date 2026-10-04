@@ -1,0 +1,10 @@
+{
+  "name": "Neon Sensor Lab",
+  "short_name": "Neon Lab",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050a12",
+  "theme_color": "#07111f",
+  "description": "Local-first phone sensor and Bluetooth research laboratory.",
+  "icons": []
+}
