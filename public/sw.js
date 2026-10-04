@@ -12,6 +12,7 @@ const CORE = [
   '/dataset-manager.js',
   '/research-session.js',
   '/research-diagnostics.js',
+  '/storage-manager.js',
   '/pwa.js',
   '/manifest.webmanifest'
 ];
