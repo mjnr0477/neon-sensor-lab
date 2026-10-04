@@ -559,12 +559,6 @@ bluetoothButton?.addEventListener("click", async () => {
       `Device ID: ${device.id} — connected`
     );
 
-    window.dispatchEvent(
-      new CustomEvent("neon:ble-device-selected", {
-        detail: { device }
-      })
-    );
-
     const services = await server.getPrimaryServices();
 
     if (!services.length) {
@@ -902,12 +896,3 @@ renderSessionHistory();
   update();
   renderHistory();
 })();
-
-/* Public bridge for the research engine.
-   Raw measurements remain local to this browser session. */
-window.NeonSensorLab = {
-  getState: () => state,
-  getSession: () => buildSessionPayload(),
-  analyze: () => analyzeSession(),
-  windows: () => buildTimeWindows(5000)
-};

@@ -559,12 +559,6 @@ bluetoothButton?.addEventListener("click", async () => {
       `Device ID: ${device.id} — connected`
     );
 
-    window.dispatchEvent(
-      new CustomEvent("neon:ble-device-selected", {
-        detail: { device }
-      })
-    );
-
     const services = await server.getPrimaryServices();
 
     if (!services.length) {
