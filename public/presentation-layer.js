@@ -2,291 +2,184 @@
   'use strict';
 
   const REFRESH_MS = 1000;
-  const PANEL_GROUPS = {
-    overview: [],
+  const QUESTIONS = [
+    { id: 'movement', label: 'Movement', type: 'motion', icon: '↔', help: 'How much am I moving?' },
+    { id: 'heart-rate', label: 'Heart rate', type: 'heart-rate', icon: '♥', help: 'What is my heart rate?' },
+    { id: 'oxygen', label: 'Blood oxygen', type: 'oxygen', icon: '◉', help: 'What is my oxygen level?' },
+    { id: 'weight', label: 'Weight', type: 'weight', icon: '↕', help: 'What do I weigh?' },
+    { id: 'temperature', label: 'Temperature', type: 'temperature', icon: '°', help: 'What is the temperature?' },
+    { id: 'pressure', label: 'Pressure', type: 'pressure', icon: '⌁', help: 'What is the pressure?' }
+  ];
+  const PANELS = {
     sensors: ['ble-intelligence', 'ble-stream'],
-    research: [
-      'research-engine',
-      'research-quality',
-      'experiment-protocol-panel',
-      'research-session-manager',
-      'research-diagnostics'
-    ],
-    data: [
-      'dataset-search',
-      'storage-manager',
-      'measurement-registry-panel'
-    ]
+    research: ['research-engine', 'research-quality', 'experiment-protocol-panel', 'research-session-manager', 'research-diagnostics'],
+    data: ['dataset-search', 'storage-manager', 'measurement-registry-panel']
   };
+  let selected = null;
 
-  function getSensorEvents() {
-    return window.NeonSensorSources?.events?.() || [];
+  function events() { return window.NeonSensorSources?.events?.() || []; }
+  function escapeHTML(value) {
+    return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
   }
 
-  function getRegistry() {
-    return window.NeonMeasurementRegistry?.list?.() || [];
+  function findEvent(question) {
+    return events().slice().reverse().find(event => {
+      const text = JSON.stringify(event.value || {}).toLowerCase();
+      const type = String(event.type || '').toLowerCase();
+      if (question.type === 'motion') return type === 'motion';
+      if (question.type === 'heart-rate') return text.includes('heart') || text.includes('2a37');
+      if (question.type === 'oxygen') return text.includes('oxygen') || text.includes('2a5e') || text.includes('2a5f');
+      if (question.type === 'weight') return text.includes('weight') || text.includes('2a9d');
+      return text.includes(question.type);
+    }) || null;
   }
 
-  function summarize() {
-    const events = getSensorEvents();
-    const sources = {};
-    const types = {};
+  function statusFor(question) {
+    const event = findEvent(question);
+    if (event) return { kind: 'available', value: formatValue(event, question), message: 'A recent measurement is available.' };
 
-    events.forEach(event => {
-      sources[event.source] = (sources[event.source] || 0) + 1;
-      types[event.type] = (types[event.type] || 0) + 1;
-    });
+    const id = {
+      'heart-rate': 'heart-rate-ble',
+      oxygen: 'pulse-ox-ble',
+      weight: 'weight-ble',
+      temperature: 'temperature-external',
+      pressure: 'pressure-external'
+    }[question.type];
+    const capability = id ? window.NeonMeasurementRegistry?.get?.(id) : null;
 
-    const quality = window.NeonResearchQuality?.inspect?.(events) || null;
-    const capabilities = getRegistry();
-    const available = capabilities.filter(item => item.status === 'available').length;
-    const supported = capabilities.filter(item => item.status === 'supported').length;
-
-    return {
-      eventCount: events.length,
-      sourceCount: Object.keys(sources).length,
-      sources,
-      types,
-      quality,
-      capabilities: capabilities.length,
-      available,
-      supported,
-      lastEvent: events.length ? events[events.length - 1].timestamp : null
-    };
+    if (capability?.status === 'supported') return { kind: 'connect', message: 'Connect a compatible sensor to get this measurement.' };
+    if (capability?.status === 'future-adapter') return { kind: 'unavailable', message: 'A compatible external sensor is required for this measurement.' };
+    return { kind: 'unavailable', message: 'This measurement is not available from the phone right now.' };
   }
 
-  function barRows(map, limit) {
-    return Object.entries(map)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit || 6);
+  function formatValue(event, question) {
+    const value = event.value || {};
+    if (question.type === 'motion') {
+      const x = Number(value.x), y = Number(value.y), z = Number(value.z);
+      if ([x, y, z].every(Number.isFinite)) return Math.sqrt(x ** 2 + y ** 2 + z ** 2).toFixed(2);
+    }
+    if (value.text) return escapeHTML(value.text);
+    return value.hex ? escapeHTML(value.hex) : 'Measurement received';
   }
 
   function render() {
     const root = document.querySelector('main.app') || document.body;
     if (!root || document.getElementById('at-a-glance-panel')) return;
-
     const panel = document.createElement('section');
-    panel.className = 'intelligence-panel';
+    panel.className = 'intelligence-panel question-first';
     panel.id = 'at-a-glance-panel';
     panel.innerHTML = `
-      <div class="intelligence-header">
-        <div>
-          <span class="label">Overview</span>
-          <h2>Everything important, at a glance.</h2>
-          <p class="intelligence-subtitle">One visual summary first. Open a section only when you want the details.</p>
+      <div class="question-hero">
+        <span class="label">NEON SENSOR LAB</span>
+        <h2>What do you want to know about yourself?</h2>
+        <p>Pick one thing. We will show you the result when the required sensor is available.</p>
+      </div>
+      <div class="question-grid" aria-label="Choose what to measure">
+        ${QUESTIONS.map(q => `
+          <button type="button" class="question-button" data-question="${q.id}">
+            <span class="question-icon" aria-hidden="true">${q.icon}</span>
+            <span><strong>${q.label}</strong><small>${q.help}</small></span>
+          </button>`).join('')}
+      </div>
+      <section class="answer-card" id="answer-card" aria-live="polite">
+        <span class="label">Your result</span>
+        <h3 id="answer-title">Choose a measurement</h3>
+        <div class="answer-value" id="answer-value">—</div>
+        <p id="answer-message">Your answer will appear here.</p>
+        <div class="answer-actions">
+          <button type="button" id="answer-save" class="answer-secondary" hidden>Save this result</button>
+          <button type="button" id="answer-connect" hidden>Connect a sensor</button>
         </div>
-        <span class="intelligence-badge" id="glance-status">WAITING</span>
+        <div class="save-status" id="answer-save-status" role="status"></div>
+      </section>
+      <div class="simple-more">
+        <button type="button" data-glance-section="sensors">Sensor controls</button>
+        <button type="button" data-glance-section="research">Research</button>
+        <button type="button" data-glance-section="data">Saved data</button>
       </div>
-
-      <div class="glance-overview">
-        <div class="glance-chart-card">
-          <div class="glance-card-title">
-            <strong>Measurement mix</strong>
-            <span>one simple picture</span>
-          </div>
-          <div class="glance-donut-wrap">
-            <div class="glance-donut" id="glance-donut" aria-label="Measurement source composition">
-              <div class="glance-donut-hole">
-                <strong id="glance-donut-total">0</strong>
-                <span>events</span>
-              </div>
-            </div>
-            <div id="glance-legend" class="glance-legend">
-              <p class="muted">No measurements yet.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="glance-kpis">
-          <div class="glance-kpi"><small>Events</small><strong id="glance-events">0</strong><span>captured</span></div>
-          <div class="glance-kpi"><small>Sources</small><strong id="glance-sources">0</strong><span>represented</span></div>
-          <div class="glance-kpi"><small>Quality</small><strong id="glance-quality">—</strong><span id="glance-quality-note">waiting for data</span></div>
-          <div class="glance-kpi"><small>Capabilities</small><strong id="glance-capabilities">0</strong><span id="glance-capability-note">catalogued</span></div>
-        </div>
-      </div>
-
-      <div class="glance-summary" id="glance-summary">
-        <strong>Ready.</strong> Choose a section below when you want to explore.
-      </div>
-
-      <div class="landing-actions" aria-label="Explore Neon Sensor Lab">
-        <button type="button" data-glance-section="sensors"><strong>Sensors</strong><span>Phone, camera, microphone & Bluetooth</span></button>
-        <button type="button" data-glance-section="research"><strong>Research</strong><span>Experiments, quality & live analysis</span></button>
-        <button type="button" data-glance-section="data"><strong>Data</strong><span>Datasets, storage & capabilities</span></button>
-      </div>
-
-      <div class="research-boundary">
-        <strong>Interpretation boundary:</strong>
-        this overview summarizes recorded measurements and data quality. It does not turn sensor
-        signals into a diagnosis, personality judgment, thought reading, or claim about an unmeasured state.
-      </div>
+      <div class="research-boundary">Only real available measurements are shown. The app does not diagnose conditions or read thoughts, EEG, or brain activity.</div>
     `;
-
     const anchor = root.querySelector('.grid');
-    if (anchor) root.insertBefore(panel, anchor);
-    else root.appendChild(panel);
+    if (anchor) root.insertBefore(panel, anchor); else root.appendChild(panel);
 
-    panel.querySelectorAll('[data-glance-section]').forEach(button => {
-      button.addEventListener('click', () => showSection(button.dataset.glanceSection));
-    });
+    panel.querySelectorAll('[data-question]').forEach(button => button.addEventListener('click', () => choose(button.dataset.question)));
+    panel.querySelectorAll('[data-glance-section]').forEach(button => button.addEventListener('click', () => showSection(button.dataset.glanceSection)));
+    document.getElementById('answer-connect')?.addEventListener('click', () => showSection('sensors'));
+    document.getElementById('answer-save')?.addEventListener('click', save);
   }
 
-  function renderDonut(sources, total) {
-    const donut = document.getElementById('glance-donut');
-    const legend = document.getElementById('glance-legend');
-    const totalNode = document.getElementById('glance-donut-total');
-    if (!donut || !legend || !totalNode) return;
+  function choose(id) {
+    selected = QUESTIONS.find(q => q.id === id) || null;
+    if (!selected) return;
+    document.querySelectorAll('[data-question]').forEach(button => button.classList.toggle('is-selected', button.dataset.question === id));
+    updateAnswer();
+    document.getElementById('answer-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
-    totalNode.textContent = String(total);
-
-    if (!total) {
-      donut.style.background = 'conic-gradient(#203149 0 100%)';
-      legend.innerHTML = '<p class="muted">Start collecting data to see the measurement mix.</p>';
-      return;
+  function updateAnswer() {
+    if (!selected) return;
+    const result = statusFor(selected);
+    const title = document.getElementById('answer-title');
+    const value = document.getElementById('answer-value');
+    const message = document.getElementById('answer-message');
+    const saveButton = document.getElementById('answer-save');
+    const connectButton = document.getElementById('answer-connect');
+    if (title) title.textContent = selected.label;
+    if (value) {
+      value.textContent = result.kind === 'available' ? result.value : 'Not available';
+      value.className = `answer-value answer-${result.kind}`;
     }
-
-    const rows = barRows(sources, 6);
-    let cursor = 0;
-    const stops = rows.map(([name, count], index) => {
-      const end = cursor + (count / total) * 100;
-      const hue = 200 + (index * 28);
-      const stop = `hsl(${hue} 65% 65%) ${cursor}% ${end}%`;
-      cursor = end;
-      return stop;
-    });
-    donut.style.background = `conic-gradient(${stops.join(', ')})`;
-
-    legend.innerHTML = rows.map(([name, count], index) => {
-      const percent = Math.round((count / total) * 100);
-      const hue = 200 + (index * 28);
-      const safe = String(name).replace(/[&<>"]/g, '');
-      return `<div class="glance-legend-row">
-        <i style="background:hsl(${hue} 65% 65%)"></i>
-        <span>${safe}</span>
-        <strong>${percent}%</strong>
-      </div>`;
-    }).join('');
+    if (message) message.textContent = result.message;
+    if (saveButton) saveButton.hidden = result.kind !== 'available';
+    if (connectButton) connectButton.hidden = result.kind !== 'connect';
   }
 
-  function renderBars(id, rows, total) {
-    const target = document.getElementById(id);
-    if (!target) return;
-
-    if (!rows.length || !total) {
-      target.innerHTML = '<p class="muted">No data yet.</p>';
-      return;
+  function save() {
+    if (!selected) return;
+    const result = statusFor(selected);
+    if (result.kind !== 'available') return;
+    try {
+      const key = 'neon-sensor-lab-results';
+      const saved = JSON.parse(localStorage.getItem(key) || '[]');
+      saved.push({ savedAt: new Date().toISOString(), question: selected.label, value: result.value });
+      localStorage.setItem(key, JSON.stringify(saved.slice(-50)));
+      const node = document.getElementById('answer-save-status');
+      if (node) node.textContent = 'Saved on this device.';
+    } catch (error) {
+      console.error('Result save failed:', error);
     }
-
-    target.innerHTML = rows.map(([name, count]) => {
-      const percent = Math.max(1, Math.round((count / total) * 100));
-      const safe = String(name).replace(/[&<>"]/g, '');
-      return `
-        <div class="glance-bar-row">
-          <div><span>${safe}</span><strong>${count} · ${percent}%</strong></div>
-          <div class="glance-track"><i style="width:${percent}%"></i></div>
-        </div>
-      `;
-    }).join('');
   }
 
-  function getSectionNodes(section) {
+  function managedNodes() {
     const root = document.querySelector('main.app');
     if (!root) return [];
-
-    const staticNodes = {
-      sensors: [root.querySelector('.grid'), root.querySelector('.recorder')].filter(Boolean),
-      research: [],
-      data: [],
-      overview: []
-    };
-
-    const ids = PANEL_GROUPS[section] || [];
-    staticNodes[section].push(...ids.map(id => document.getElementById(id)).filter(Boolean));
-    return staticNodes[section];
-  }
-
-  function allManagedNodes() {
-    const root = document.querySelector('main.app');
-    if (!root) return [];
-    const ids = [...new Set(Object.values(PANEL_GROUPS).flat())];
-    return [
-      root.querySelector('.grid'),
-      root.querySelector('.recorder'),
-      ...ids.map(id => document.getElementById(id))
-    ].filter(Boolean);
+    const ids = [...new Set(Object.values(PANELS).flat())];
+    return [root.querySelector('.grid'), root.querySelector('.recorder'), ...ids.map(id => document.getElementById(id))].filter(Boolean);
   }
 
   function showSection(section) {
-    const target = PANEL_GROUPS[section] ? section : 'overview';
-    allManagedNodes().forEach(node => {
-      node.classList.add('landing-hidden');
-    });
-    getSectionNodes(target).forEach(node => {
-      node.classList.remove('landing-hidden');
-    });
-
-    document.querySelectorAll('[data-glance-section]').forEach(button => {
-      button.classList.toggle('is-active', button.dataset.glanceSection === target);
-    });
-
-    if (target === 'overview') {
+    const target = PANELS[section] ? section : null;
+    managedNodes().forEach(node => node.classList.add('landing-hidden'));
+    if (!target) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-
-    const first = getSectionNodes(target)[0];
-    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const root = document.querySelector('main.app');
+    const nodes = target === 'sensors'
+      ? [root.querySelector('.grid'), root.querySelector('.recorder'), ...PANELS.sensors.map(id => document.getElementById(id))]
+      : PANELS[target].map(id => document.getElementById(id));
+    const first = nodes.filter(Boolean)[0];
+    nodes.filter(Boolean).forEach(node => node.classList.remove('landing-hidden'));
+    first?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function update() {
-    render();
-    const s = summarize();
-    const events = document.getElementById('glance-events');
-    const sources = document.getElementById('glance-sources');
-    const quality = document.getElementById('glance-quality');
-    const qualityNote = document.getElementById('glance-quality-note');
-    const capabilities = document.getElementById('glance-capabilities');
-    const capabilityNote = document.getElementById('glance-capability-note');
-    const status = document.getElementById('glance-status');
-    const summary = document.getElementById('glance-summary');
-
-    if (events) events.textContent = String(s.eventCount);
-    if (sources) sources.textContent = String(s.sourceCount);
-    if (capabilities) capabilities.textContent = String(s.capabilities);
-    if (capabilityNote) capabilityNote.textContent = `${s.available} ready · ${s.supported} device-supported`;
-
-    if (s.quality?.integrityScore !== null && s.quality?.integrityScore !== undefined) {
-      if (quality) quality.textContent = `${s.quality.integrityScore}%`;
-      if (qualityNote) qualityNote.textContent = s.quality.integrityIssues
-        ? `${s.quality.integrityIssues} issue(s)`
-        : 'structurally clean';
-    } else {
-      if (quality) quality.textContent = '—';
-      if (qualityNote) qualityNote.textContent = 'waiting for data';
-    }
-
-    if (status) status.textContent = s.eventCount ? 'LIVE' : 'READY';
-    renderDonut(s.sources, s.eventCount);
-    renderBars('glance-source-bars', barRows(s.sources, 6), s.eventCount);
-    renderBars('glance-type-bars', barRows(s.types, 6), s.eventCount);
-
-    if (summary) {
-      if (!s.eventCount) {
-        summary.innerHTML = '<strong>Ready.</strong> Sensors, research tools and stored data are separated behind simple sections.';
-      } else {
-        const qualityText = s.quality?.integrityScore == null
-          ? 'quality is not scored yet'
-          : `data integrity is ${s.quality.integrityScore}%`;
-        summary.innerHTML = `<strong>In plain language:</strong> ${s.eventCount} event(s) from ${s.sourceCount} source(s); ${qualityText}.`;
-      }
-    }
-  }
+  function update() { render(); updateAnswer(); }
 
   window.addEventListener('load', () => {
     update();
-    window.setTimeout(() => showSection('overview'), 100);
-    window.setInterval(update, REFRESH_MS);
+    setTimeout(() => showSection(null), 100);
+    setInterval(update, REFRESH_MS);
   });
 
-  window.NeonPresentation = { summarize, update, showSection };
+  window.NeonPresentation = { update, showSection, choose };
 })();
