@@ -1,4 +1,4 @@
-const CACHE = 'neon-sensor-lab-v2';
+const CACHE = 'neon-sensor-lab-v3';
 const CORE = [
   '/',
   '/index.html',
@@ -12,6 +12,8 @@ const CORE = [
   '/dataset-manager.js',
   '/research-session.js',
   '/research-diagnostics.js',
+  '/research-quality.js',
+  '/dataset-explorer.js',
   '/storage-manager.js',
   '/pwa.js',
   '/manifest.webmanifest'
