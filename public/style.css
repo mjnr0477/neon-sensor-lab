@@ -499,3 +499,47 @@ video {
     flex: 1;
   }
 }
+
+
+.measurement-groups {
+  display: grid;
+  gap: 18px;
+}
+
+.measurement-group h3 {
+  margin: 0 0 8px;
+  text-transform: capitalize;
+}
+
+.measurement-list {
+  display: grid;
+  gap: 8px;
+}
+
+.measurement-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid #203149;
+  border-radius: 14px;
+  background: rgba(5, 10, 18, .45);
+}
+
+.measurement-item strong,
+.measurement-item small,
+.measurement-item span {
+  display: block;
+}
+
+.measurement-item small,
+.measurement-item span {
+  color: #8fa2bb;
+  font-size: .78rem;
+}
+
+@media (max-width: 700px) {
+  .measurement-item {
+    flex-direction: column;
+  }
+}
