@@ -70,7 +70,8 @@
   function getProtocol() {
     return {
       ...state.protocol,
-      variables: [...state.protocol.variables]
+      variables: [...state.protocol.variables],
+      steps: state.protocol.steps.map(step => ({ ...step }))
     };
   }
 
@@ -84,6 +85,7 @@
       collectionIntent: '',
       variables: [],
       notes: '',
+      steps: [],
       protocolVersion: '1.0',
       createdAt: null,
       updatedAt: null
@@ -164,6 +166,13 @@
         <label class="session-form-wide">
           <span>Variables / sources</span>
           <input id="experiment-protocol-variables" maxlength="600" placeholder="motion, orientation, heart-rate BLE">
+        </label>
+        <label class="session-form-wide">
+          <span>Procedure steps (one per line)</span>
+          <textarea id="experiment-protocol-steps" maxlength="3000" rows="4" placeholder="Prepare setup
+Collect baseline
+Run measurement
+Review dataset"></textarea>
         </label>
         <label class="session-form-wide">
           <span>Protocol notes</span>
