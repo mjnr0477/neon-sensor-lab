@@ -13,6 +13,7 @@
       collectionIntent: '',
       variables: [],
       notes: '',
+      steps: [],
       protocolVersion: '1.0',
       createdAt: null,
       updatedAt: null
@@ -33,6 +34,15 @@
       .slice(0, 30);
   }
 
+  function normalizeSteps(value) {
+    return String(value || '')
+      .split('\n')
+      .map(item => item.trim())
+      .filter(Boolean)
+      .slice(0, 30)
+      .map((title, index) => ({ id: 'step-' + (index + 1), order: index + 1, title }));
+  }
+
   function updateFromForm() {
     const title = document.getElementById('experiment-protocol-title');
     const objective = document.getElementById('experiment-protocol-objective');
@@ -44,6 +54,7 @@
     state.protocol.objective = String(objective?.value || '').trim().slice(0, 1000);
     state.protocol.collectionIntent = String(intent?.value || '').trim().slice(0, 1000);
     state.protocol.variables = normalizeList(variables?.value);
+    state.protocol.steps = normalizeSteps(document.getElementById('experiment-protocol-steps')?.value);
     state.protocol.notes = String(notes?.value || '').trim().slice(0, 2000);
     state.protocol.updatedAt = now();
 
@@ -97,6 +108,7 @@
       'experiment-protocol-objective': p.objective,
       'experiment-protocol-intent': p.collectionIntent,
       'experiment-protocol-variables': p.variables.join(', '),
+      'experiment-protocol-steps': p.steps.map(step => step.title).join('\n'),
       'experiment-protocol-notes': p.notes
     };
 
@@ -193,6 +205,8 @@
     getProtocol,
     updateFromForm,
     attachToSession,
-    reset
+    reset,
+    snapshot: () => JSON.parse(JSON.stringify(getProtocol())),
+    steps: () => getProtocol().steps
   };
 })();
