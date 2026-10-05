@@ -89,7 +89,9 @@
         signals into a diagnosis, personality judgment, thought reading, or claim about an unmeasured state.
       </div>
     `;
-    root.appendChild(panel);
+    const anchor = root.querySelector('.grid');
+    if (anchor) root.insertBefore(panel, anchor);
+    else root.appendChild(panel);
   }
 
   function renderBars(id, rows, total) {
