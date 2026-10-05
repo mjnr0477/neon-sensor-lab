@@ -4,7 +4,7 @@
   "description": "Local-first phone sensor and Bluetooth research laboratory.",
   "main": "server.js",
   "scripts": {
-    "check": "node --check server.js && node --check public/app.js && node --check public/research-engine.js && node --check public/ble-engine.js && node --check public/ble-stream.js && node --check public/sensor-source.js && node --check public/session-store.js && node --check public/dataset-manager.js && node --check public/research-session.js && node --check public/research-diagnostics.js && node --check public/storage-manager.js && node --check public/research-quality.js && node --check public/dataset-explorer.js",
+    "check": "node --check server.js && node --check public/app.js && node --check public/research-engine.js && node --check public/ble-engine.js && node --check public/ble-stream.js && node --check public/sensor-source.js && node --check public/session-store.js && node --check public/dataset-manager.js && node --check public/research-session.js && node --check public/research-diagnostics.js && node --check public/storage-manager.js && node --check public/research-quality.js && node --check public/dataset-explorer.js && node --check public/experiment-protocol.js",
     "test": "npm run check",
     "start": "node server.js"
   },
