@@ -15,6 +15,12 @@
     { id: 'cycling-ble', domain: 'external-device', label: 'Cycling device stream', source: 'ble', status: 'supported', examples: ['speed', 'cadence', 'power'] },
     { id: 'temperature-external', domain: 'environment', label: 'External temperature sensor', source: 'external', status: 'future-adapter', examples: ['ambient temperature'] },
     { id: 'pressure-external', domain: 'environment', label: 'External pressure sensor', source: 'external', status: 'future-adapter', examples: ['air pressure'] },
+    { id: 'body-temperature-external', domain: 'external-biometric', label: 'Body-temperature sensor', source: 'external', status: 'future-adapter', examples: ['body temperature'] },
+    { id: 'blood-pressure-external', domain: 'external-biometric', label: 'Blood-pressure monitor', source: 'external', status: 'future-adapter', examples: ['systolic', 'diastolic', 'pulse'] },
+    { id: 'breathing-external', domain: 'external-biometric', label: 'Breathing sensor', source: 'external', status: 'future-adapter', examples: ['respiratory rate'] },
+    { id: 'posture-derived', domain: 'human-motion', label: 'Posture / position analysis', source: 'phone', status: 'supported', examples: ['orientation', 'movement patterns'] },
+    { id: 'activity-derived', domain: 'human-motion', label: 'Activity analysis', source: 'phone', status: 'supported', examples: ['movement patterns', 'activity state'] },
+    { id: 'environment-sensors', domain: 'environment', label: 'Environmental sensor inputs', source: 'external', status: 'future-adapter', examples: ['temperature', 'pressure', 'humidity', 'light', 'sound'] },
     { id: 'location-external', domain: 'environment', label: 'Location / movement context', source: 'external', status: 'future-adapter', examples: ['position', 'route context'] }
   ];
 
