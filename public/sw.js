@@ -1,4 +1,4 @@
-const CACHE = 'neon-sensor-lab-v3';
+const CACHE = 'neon-sensor-lab-v4';
 const CORE = [
   '/',
   '/index.html',
