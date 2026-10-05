@@ -474,3 +474,28 @@ video {
     gap: 4px;
   }
 }
+
+
+.dataset-row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dataset-row-actions button {
+  width: auto;
+  min-width: 64px;
+  padding: 9px 12px;
+  font-size: .78rem;
+}
+
+@media (max-width: 700px) {
+  .dataset-row-actions {
+    width: 100%;
+  }
+
+  .dataset-row-actions button {
+    flex: 1;
+  }
+}
