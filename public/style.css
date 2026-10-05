@@ -543,3 +543,89 @@ video {
     flex-direction: column;
   }
 }
+
+.glance-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.glance-kpi, .glance-card {
+  padding: 16px;
+  border: 1px solid #203149;
+  border-radius: 18px;
+  background: rgba(5, 10, 18, .5);
+}
+
+.glance-kpi small, .glance-kpi span, .glance-card-title span, .muted {
+  color: #8fa2bb;
+  font-size: .78rem;
+}
+
+.glance-kpi strong {
+  display: block;
+  margin: 5px 0;
+  font-size: 1.65rem;
+}
+
+.glance-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.glance-card-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.glance-bars {
+  display: grid;
+  gap: 12px;
+}
+
+.glance-bar-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: .85rem;
+}
+
+.glance-track {
+  height: 8px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #142238;
+}
+
+.glance-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #9bc7f5;
+}
+
+.glance-summary {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #0e1929;
+  color: #b8c8dc;
+}
+
+@media (max-width: 800px) {
+  .glance-kpis, .glance-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .glance-kpis, .glance-layout {
+    grid-template-columns: 1fr;
+  }
+}
