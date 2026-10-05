@@ -743,3 +743,28 @@ video {
     grid-template-columns: 1fr;
   }
 }
+
+.landing-actions button {
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
+  text-align: left;
+  color: #edf4ff;
+  background: #0e1929;
+  border: 1px solid #263b56;
+}
+
+.landing-actions button strong {
+  font-size: 1rem;
+}
+
+.landing-actions button span {
+  color: #8fa2bb;
+  font-size: .75rem;
+  font-weight: 500;
+}
+
+.landing-actions button:hover {
+  border-color: #52779c;
+  background: #132238;
+}
