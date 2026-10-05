@@ -110,9 +110,9 @@
       </div>
 
       <div class="landing-actions" aria-label="Explore Neon Sensor Lab">
-        <button type="button" data-glance-section="sensors">Sensors</button>
-        <button type="button" data-glance-section="research">Research</button>
-        <button type="button" data-glance-section="data">Data & capabilities</button>
+        <button type="button" data-glance-section="sensors"><strong>Sensors</strong><span>Phone, camera, microphone & Bluetooth</span></button>
+        <button type="button" data-glance-section="research"><strong>Research</strong><span>Experiments, quality & live analysis</span></button>
+        <button type="button" data-glance-section="data"><strong>Data</strong><span>Datasets, storage & capabilities</span></button>
       </div>
 
       <div class="research-boundary">
