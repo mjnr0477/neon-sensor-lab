@@ -7,8 +7,12 @@
     { id: 'heart-rate', label: 'Heart rate', type: 'heart-rate', icon: '♥', help: 'What is my heart rate?' },
     { id: 'oxygen', label: 'Blood oxygen', type: 'oxygen', icon: '◉', help: 'What is my oxygen level?' },
     { id: 'weight', label: 'Weight', type: 'weight', icon: '↕', help: 'What do I weigh?' },
-    { id: 'temperature', label: 'Temperature', type: 'temperature', icon: '°', help: 'What is the temperature?' },
-    { id: 'pressure', label: 'Pressure', type: 'pressure', icon: '⌁', help: 'What is the pressure?' }
+    { id: 'body-temperature', label: 'Body temperature', type: 'body-temperature', icon: '°', help: 'What is my temperature?' },
+    { id: 'blood-pressure', label: 'Blood pressure', type: 'blood-pressure', icon: '⌁', help: 'What is my blood pressure?' },
+    { id: 'breathing', label: 'Breathing', type: 'breathing', icon: '≈', help: 'What is my breathing rate?' },
+    { id: 'posture', label: 'Posture', type: 'posture', icon: '↕', help: 'How am I positioned?' },
+    { id: 'activity', label: 'Activity', type: 'activity', icon: '●', help: 'What am I doing?' },
+    { id: 'environment', label: 'Environment', type: 'environment', icon: '⌂', help: 'What is around me?' }
   ];
   const PANELS = {
     sensors: ['ble-intelligence', 'ble-stream'],
@@ -26,10 +30,11 @@
     return events().slice().reverse().find(event => {
       const text = JSON.stringify(event.value || {}).toLowerCase();
       const type = String(event.type || '').toLowerCase();
-      if (question.type === 'motion') return type === 'motion';
+      if (question.type === 'motion' || question.type === 'activity' || question.type === 'posture') return type === 'motion';
       if (question.type === 'heart-rate') return text.includes('heart') || text.includes('2a37');
       if (question.type === 'oxygen') return text.includes('oxygen') || text.includes('2a5e') || text.includes('2a5f');
       if (question.type === 'weight') return text.includes('weight') || text.includes('2a9d');
+      if (question.type === 'environment') return text.includes('temperature') || text.includes('pressure') || text.includes('humidity') || text.includes('light');
       return text.includes(question.type);
     }) || null;
   }
@@ -42,19 +47,23 @@
       'heart-rate': 'heart-rate-ble',
       oxygen: 'pulse-ox-ble',
       weight: 'weight-ble',
-      temperature: 'temperature-external',
-      pressure: 'pressure-external'
+      'body-temperature': 'body-temperature-external',
+      'blood-pressure': 'blood-pressure-external',
+      breathing: 'breathing-external',
+      posture: 'posture-derived',
+      activity: 'activity-derived',
+      environment: 'environment-sensors'
     }[question.type];
     const capability = id ? window.NeonMeasurementRegistry?.get?.(id) : null;
 
     if (capability?.status === 'supported') return { kind: 'connect', message: 'Connect a compatible sensor to get this measurement.' };
-    if (capability?.status === 'future-adapter') return { kind: 'unavailable', message: 'A compatible external sensor is required for this measurement.' };
+    if (capability?.status === 'future-adapter') return { kind: 'unavailable', message: 'A compatible sensor or data source is required for this measurement.' };
     return { kind: 'unavailable', message: 'This measurement is not available from the phone right now.' };
   }
 
   function formatValue(event, question) {
     const value = event.value || {};
-    if (question.type === 'motion') {
+    if (question.type === 'motion' || question.type === 'activity' || question.type === 'posture') {
       const x = Number(value.x), y = Number(value.y), z = Number(value.z);
       if ([x, y, z].every(Number.isFinite)) return Math.sqrt(x ** 2 + y ** 2 + z ** 2).toFixed(2);
     }
