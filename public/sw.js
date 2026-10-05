@@ -14,6 +14,7 @@ const CORE = [
   '/research-diagnostics.js',
   '/research-quality.js',
   '/dataset-explorer.js',
+  '/experiment-protocol.js',
   '/storage-manager.js',
   '/pwa.js',
   '/manifest.webmanifest'
