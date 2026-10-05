@@ -16,7 +16,8 @@
       tags: []
     },
     events: [],
-    sources: new Set()
+    sources: new Set(),
+    protocolSnapshot: null
   };
 
   function isoNow() {
@@ -78,9 +79,8 @@
       sources: [...state.sources],
       eventCount: state.events.length,
       events: state.events.slice(),
-      protocol: window.NeonExperimentProtocol?.getProtocol
-        ? window.NeonExperimentProtocol.getProtocol()
-        : null,
+      protocol: state.protocolSnapshot,
+      protocolCapturedAt: state.protocolSnapshot?.capturedAt || null,
       provenance: {
         app: 'Neon Sensor Lab',
         device: 'Neon Ray Ultra M',
@@ -105,6 +105,12 @@
     state.metadata = normalizeMetadata(metadata);
     state.events = [];
     state.sources = new Set();
+    const protocol = window.NeonExperimentProtocol?.snapshot
+      ? window.NeonExperimentProtocol.snapshot()
+      : (window.NeonExperimentProtocol?.getProtocol ? window.NeonExperimentProtocol.getProtocol() : null);
+    state.protocolSnapshot = protocol
+      ? { ...protocol, capturedAt: isoNow() }
+      : null;
 
     render();
     return getState();
@@ -131,6 +137,7 @@
     state.metadata = normalizeMetadata();
     state.events = [];
     state.sources = new Set();
+    state.protocolSnapshot = null;
     render();
   }
 
@@ -142,7 +149,9 @@
       endedAt: state.endedAt,
       metadata: { ...state.metadata, tags: [...state.metadata.tags] },
       eventCount: state.events.length,
-      sources: [...state.sources]
+      sources: [...state.sources],
+      protocolId: state.protocolSnapshot?.id || null,
+      protocolVersion: state.protocolSnapshot?.protocolVersion || null
     };
   }
 
