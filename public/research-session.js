@@ -78,6 +78,9 @@
       sources: [...state.sources],
       eventCount: state.events.length,
       events: state.events.slice(),
+      protocol: window.NeonExperimentProtocol?.getProtocol
+        ? window.NeonExperimentProtocol.getProtocol()
+        : null,
       provenance: {
         app: 'Neon Sensor Lab',
         device: 'Neon Ray Ultra M',
