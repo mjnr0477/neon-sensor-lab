@@ -58,15 +58,44 @@
     };
   }
 
+  function decodeDateTime(v, offset) {
+    if (v.byteLength < offset + 7) return null;
+    const year = u16(v, offset);
+    const month = v.getUint8(offset + 2);
+    const day = v.getUint8(offset + 3);
+    const hour = v.getUint8(offset + 4);
+    const minute = v.getUint8(offset + 5);
+    const second = v.getUint8(offset + 6);
+    if (!year || !month || !day) return null;
+    return new Date(Date.UTC(year, month - 1, day, hour, minute, second)).toISOString();
+  }
+
   function pulseOximeter(input) {
     const v = viewOf(input);
     if (!v || v.byteLength < 3) return null;
     const flags = v.getUint8(0);
-    const oxygen = sfloat(v, 1);
-    const result = { measurement: 'blood-oxygen', value: oxygen, unit: '%', flags };
-    if (v.byteLength >= 5) {
-      result.pulseRate = sfloat(v, 3);
+    let offset = 1;
+    const result = { measurement: 'blood-oxygen', value: sfloat(v, offset), unit: '%', flags };
+    offset += 2;
+    if (flags & 1) {
+      result.timestamp = decodeDateTime(v, offset);
+      offset += 7;
+    }
+    if (flags & 2 && v.byteLength >= offset + 2) {
+      result.pulseRate = sfloat(v, offset);
       result.pulseUnit = 'bpm';
+      offset += 2;
+    }
+    if (flags & 4 && v.byteLength >= offset + 2) {
+      result.measurementStatus = u16(v, offset);
+      offset += 2;
+    }
+    if (flags & 8 && v.byteLength >= offset + 3) {
+      result.deviceSensorStatus = v.getUint8(offset) | (v.getUint8(offset + 1) << 8) | (v.getUint8(offset + 2) << 16);
+      offset += 3;
+    }
+    if (flags & 16 && v.byteLength >= offset + 2) {
+      result.pulseAmplitude = sfloat(v, offset);
     }
     return result;
   }
@@ -76,8 +105,10 @@
     if (!v || v.byteLength < 3) return null;
     const flags = v.getUint8(0);
     const imperial = Boolean(flags & 1);
-    const raw = sfloat(v, 1);
-    return {
+    let offset = 1;
+    const raw = sfloat(v, offset);
+    offset += 2;
+    const result = {
       measurement: 'weight',
       value: imperial ? raw * 0.45359237 : raw,
       unit: 'kg',
@@ -85,6 +116,20 @@
       originalUnit: imperial ? 'lb' : 'kg',
       flags
     };
+    if (flags & 2) {
+      result.timestamp = decodeDateTime(v, offset);
+      offset += 7;
+    }
+    if (flags & 4 && v.byteLength > offset) {
+      result.userId = v.getUint8(offset);
+      offset += 1;
+    }
+    if (flags & 8 && v.byteLength >= offset + 4) {
+      result.bmi = sfloat(v, offset);
+      result.height = sfloat(v, offset + 2);
+      result.heightUnit = 'm';
+    }
+    return result;
   }
 
   function cyclingSpeedCadence(input) {
