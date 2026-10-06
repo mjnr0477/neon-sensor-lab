@@ -5,7 +5,8 @@
     sources: new Map(),
     events: [],
     lastPhoneSample: 0,
-    lastBleEvent: 0
+    lastBleEvent: 0,
+    observations: []
   };
 
   function now() {
@@ -99,6 +100,15 @@
     ingestBleEvents();
   }
 
+  window.addEventListener('neon:scientific-observation', event => {
+    const observation = event.detail;
+    if (!observation || !window.NeonScientific?.validateObservation?.(observation).valid) return;
+    state.observations.push(observation);
+    if (state.observations.length > 2000) {
+      state.observations.splice(0, state.observations.length - 2000);
+    }
+  });
+
   registerSource('phone', {
     category: 'device-sensor',
     transport: 'browser-sensor-api',
@@ -118,9 +128,11 @@
     events: () => state.events.slice(),
     clear: () => {
       state.events.length = 0;
+      state.observations.length = 0;
       state.lastPhoneSample = 0;
       state.lastBleEvent = 0;
     },
+    observations: () => state.observations.slice(),
     state: () => ({
       eventCount: state.events.length,
       lastPhoneSample: state.lastPhoneSample,
