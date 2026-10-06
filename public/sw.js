@@ -1,9 +1,13 @@
-const CACHE = 'neon-sensor-lab-v4';
+const CACHE = 'neon-sensor-lab-v5';
 const CORE = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
+  '/scientific-core.js',
+  '/ble-decoders.js',
+  '/signal-intelligence.js',
+  '/scientific-method.js',
   '/research-engine.js',
   '/ble-engine.js',
   '/ble-stream.js',
