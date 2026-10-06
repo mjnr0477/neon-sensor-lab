@@ -224,6 +224,15 @@
         <p>Choose one.</p>
       </div>
 
+      <form class="doctor-ask" id="doctor-ask">
+        <label for="doctor-input">Tell me what you want to know</label>
+        <div class="doctor-input-row">
+          <input id="doctor-input" name="question" type="text" autocomplete="off"
+            placeholder="e.g. What is my heart rate?" />
+          <button type="submit">Ask</button>
+        </div>
+      </form>
+
       <div class="question-category-grid" aria-label="Choose a category">
         ${CATEGORIES.map(category => `
           <button type="button" class="question-category" data-category="${category.id}">
@@ -266,6 +275,11 @@
     const anchor = root.querySelector('.grid');
     if (anchor) root.insertBefore(panel, anchor);
     else root.appendChild(panel);
+
+    panel.querySelector('#doctor-ask')?.addEventListener('submit', event => {
+      event.preventDefault();
+      ask(panel.querySelector('#doctor-input')?.value || '');
+    });
 
     panel.querySelectorAll('[data-category]').forEach(button => {
       button.addEventListener('click', () => chooseCategory(button.dataset.category));
@@ -333,6 +347,39 @@
     if (answer) answer.hidden = true;
 
     document.querySelectorAll('[data-category]').forEach(button => button.classList.remove('is-selected'));
+  }
+
+  function ask(text) {
+    const normalized = String(text).toLowerCase().trim();
+    const matches = [
+      ['heart-rate', ['heart rate', 'pulse', 'heartbeat']],
+      ['oxygen', ['oxygen', 'spo2', 'blood oxygen']],
+      ['weight', ['weight', 'weigh']],
+      ['body-temperature', ['body temperature', 'temperature']],
+      ['blood-pressure', ['blood pressure', 'bp']],
+      ['breathing', ['breathing', 'respiratory', 'respiration']],
+      ['posture', ['posture', 'position']],
+      ['activity', ['activity', 'doing']],
+      ['movement', ['movement', 'moving']],
+      ['environment', ['environment', 'around me', 'air temperature', 'humidity', 'pressure']]
+    ];
+    const match = matches.find(([, terms]) => terms.some(term => normalized.includes(term)));
+    if (!match) {
+      const answer = document.getElementById('answer-card');
+      const title = document.getElementById('answer-title');
+      const value = document.getElementById('answer-value');
+      const message = document.getElementById('answer-message');
+      if (answer) answer.hidden = false;
+      if (title) title.textContent = 'I can help with measurable information';
+      if (value) value.textContent = 'Ask me about a measurement';
+      if (message) message.textContent = 'For thoughts or feelings, tell me what you are experiencing and I can help you think through it. I cannot directly read thoughts from sensors.';
+      return;
+    }
+
+    const [id] = match;
+    const category = CATEGORIES.find(item => item.questions.some(question => question.id === id));
+    if (category) chooseCategory(category.id);
+    choose(id);
   }
 
   function choose(id) {
@@ -419,7 +466,7 @@
 
     const root = document.querySelector('main.app');
     const nodes = target === 'sensors'
-      ? [root.querySelector('.grid'), root.querySelector('.recorder'), ...PANELS.sensors.map(id => document.getElementById(id))]
+      ? [root.querySelector('.landing-technical'), root.querySelector('.grid'), root.querySelector('.recorder'), ...PANELS.sensors.map(id => document.getElementById(id))]
       : PANELS[target].map(id => document.getElementById(id));
 
     const first = nodes.filter(Boolean)[0];
@@ -438,5 +485,5 @@
     setInterval(update, REFRESH_MS);
   });
 
-  window.NeonPresentation = { update, showSection, choose };
+  window.NeonPresentation = { update, showSection, choose, ask };
 })();
