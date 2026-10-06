@@ -131,9 +131,11 @@
         const item = document.createElement('div');
         item.className = 'history-item';
 
-        const value = event.value.text
-          ? `text="${event.value.text}" · ${event.value.hex}`
-          : event.value.hex || 'No bytes';
+        const value = event.decoded?.value !== undefined
+          ? `${event.decoded.value} ${event.decoded.unit || ''}`
+          : event.value.text
+            ? `text="${event.value.text}" · ${event.value.hex}`
+            : event.value.hex || 'No bytes';
 
         item.textContent =
           `${new Date(event.timestamp).toLocaleTimeString()} · ` +
@@ -147,12 +149,30 @@
     const characteristic = event.target;
     const value = decode(event.target.value);
 
+    const decoded = window.NeonBLEDecoders?.decode?.(characteristic.uuid, event.target.value) || null;
     state.events.push({
       timestamp: new Date().toISOString(),
       uuid: characteristic.uuid,
       name: characteristic.userDescription || characteristic.uuid,
-      value
+      value,
+      decoded
     });
+
+    if (decoded?.measurement && Number.isFinite(Number(decoded.value))) {
+      window.dispatchEvent(new CustomEvent('neon:scientific-observation', {
+        detail: window.NeonScientific?.observation?.({
+          measurement: decoded.measurement,
+          value: Number(decoded.value),
+          unit: decoded.unit || null,
+          source: 'ble',
+          transport: 'web-bluetooth',
+          deviceId: state.device?.id || null,
+          characteristic: characteristic.uuid,
+          algorithm: 'bluetooth-standard-decoder',
+          quality: 'direct-device-value'
+        })
+      }));
+    }
 
     if (state.events.length > MAX_EVENTS) {
       state.events.splice(0, state.events.length - MAX_EVENTS);
