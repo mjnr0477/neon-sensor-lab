@@ -21,6 +21,17 @@
   function s16(v, o) { return v.getInt16(o, true); }
   function u32(v, o) { return v.getUint32(o, true); }
 
+  function sfloat(v, o) {
+    const raw = u16(v, o);
+    let mantissa = raw & 0x0fff;
+    if (mantissa >= 0x0800) mantissa -= 0x1000;
+    let exponent = (raw >> 12) & 0x0f;
+    if (exponent >= 0x08) exponent -= 0x10;
+    if (mantissa === 0x07ff && exponent === 0x07) return NaN;
+    if (mantissa === 0x0800 && exponent === 0x08) return NaN;
+    return mantissa * (10 ** exponent);
+  }
+
   function heartRate(input) {
     const v = viewOf(input);
     if (!v || v.byteLength < 2) return null;
@@ -41,13 +52,9 @@
       }
     }
     return {
-      measurement: 'heart-rate',
-      value,
-      unit: 'bpm',
+      measurement: 'heart-rate', value, unit: 'bpm',
       sensorContact: contactSupported ? Boolean(flags & 2) : null,
-      energyExpended,
-      rrIntervals,
-      flags
+      energyExpended, rrIntervals, flags
     };
   }
 
@@ -55,10 +62,10 @@
     const v = viewOf(input);
     if (!v || v.byteLength < 3) return null;
     const flags = v.getUint8(0);
-    const oxygen = u16(v, 1) / 100;
+    const oxygen = sfloat(v, 1);
     const result = { measurement: 'blood-oxygen', value: oxygen, unit: '%', flags };
     if (v.byteLength >= 5) {
-      result.pulseRate = u16(v, 3) / 100;
+      result.pulseRate = sfloat(v, 3);
       result.pulseUnit = 'bpm';
     }
     return result;
@@ -69,9 +76,15 @@
     if (!v || v.byteLength < 3) return null;
     const flags = v.getUint8(0);
     const imperial = Boolean(flags & 1);
-    const raw = u16(v, 1);
-    const kg = imperial ? (raw / 200) * 0.45359237 : raw / 200;
-    return { measurement: 'weight', value: kg, unit: 'kg', originalUnit: imperial ? 'lb' : 'kg', flags };
+    const raw = sfloat(v, 1);
+    return {
+      measurement: 'weight',
+      value: imperial ? raw * 0.45359237 : raw,
+      unit: 'kg',
+      originalValue: raw,
+      originalUnit: imperial ? 'lb' : 'kg',
+      flags
+    };
   }
 
   function cyclingSpeedCadence(input) {
@@ -109,7 +122,7 @@
   }
 
   window.NeonBLEDecoders = {
-    characteristics: { ...CHARACTERISTIC },
-    viewOf, heartRate, pulseOximeter, weight, cyclingSpeedCadence, cyclingPower, decode
+    characteristics: { ...CHARACTERISTIC }, viewOf, sfloat,
+    heartRate, pulseOximeter, weight, cyclingSpeedCadence, cyclingPower, decode
   };
 })();
