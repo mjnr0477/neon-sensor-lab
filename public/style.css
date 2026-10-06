@@ -925,3 +925,39 @@ button:focus-visible { outline: 2px solid #9bc7f5; outline-offset: 3px; }
     width: 100%;
   }
 }
+
+
+/* Ultra-simple consumer shell */
+.neon-simple-app { max-width: 680px; margin: 0 auto; padding: 18px 16px 40px; }
+.neon-simple-header { display:flex; align-items:center; gap:10px; margin:4px 0 20px; }
+.neon-simple-header .neon-mark { width:32px; height:32px; display:grid; place-items:center; border-radius:10px; background:#17283f; color:#edf4ff; font-weight:800; }
+.neon-simple-header strong { display:block; color:#edf4ff; font-size:1rem; }
+.neon-simple-header span { display:block; color:#71849c; font-size:.7rem; margin-top:1px; }
+.neon-simple-app .question-hero { padding:18px 4px 14px; }
+.neon-simple-app .question-hero .label { display:none; }
+.neon-simple-app .question-hero h2 { font-size:clamp(1.7rem,7vw,2.35rem); margin:0 0 7px; }
+.neon-simple-app .question-hero p { font-size:.82rem; }
+.neon-simple-app .doctor-ask { margin:0 0 12px; }
+.neon-simple-app .doctor-ask label { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+.neon-simple-app .doctor-input-row { grid-template-columns:1fr auto; }
+.neon-simple-app .doctor-input-row input { min-height:52px; border-radius:16px; background:#0a1423; }
+.neon-simple-app .doctor-input-row button { min-height:52px; border-radius:16px; }
+.neon-simple-app .question-category-grid { gap:8px; }
+.neon-simple-app .question-category { min-height:58px; padding:11px 12px; border-radius:15px; }
+.neon-simple-app .question-category .question-icon { width:32px; height:32px; flex-basis:32px; border-radius:10px; font-size:.9rem; }
+.neon-simple-app .question-category strong { font-size:.82rem; }
+.neon-simple-app .question-detail-head { margin:8px 0; }
+.neon-simple-app .question-choice-grid { gap:8px; }
+.neon-simple-app .question-choice { min-height:54px; padding:10px 11px; border-radius:14px; }
+.neon-simple-app .question-choice .question-icon { width:30px; height:30px; flex-basis:30px; border-radius:9px; }
+.neon-simple-app .answer-card { margin-top:12px; padding:20px 14px; border-radius:18px; }
+.neon-simple-app .answer-card .label { font-size:.65rem; }
+.neon-simple-app .answer-value { font-size:clamp(2.1rem,12vw,3.3rem); }
+.neon-simple-app .answer-actions button { min-height:42px; }
+.neon-simple-app .simple-more { margin-top:10px; }
+.neon-simple-app .more-options { padding-top:4px; }
+@media (max-width:480px) {
+  .neon-simple-app { padding:12px 12px 28px; }
+  .neon-simple-header { margin-bottom:10px; }
+  .neon-simple-app .doctor-input-row { grid-template-columns:1fr auto; }
+}
