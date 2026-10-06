@@ -54,6 +54,7 @@
   let selected = null;
 
   function events() { return window.NeonSensorSources?.events?.() || []; }
+  function observations() { return window.NeonSensorSources?.observations?.() || []; }
 
   function escapeHTML(value) {
     return String(value)
@@ -65,6 +66,14 @@
   }
 
   function findEvent(question) {
+    const scientific = observations().slice().reverse().find(observation => {
+      if (question.type === 'heart-rate') return observation.measurement === 'heart-rate';
+      if (question.type === 'oxygen') return observation.measurement === 'blood-oxygen';
+      if (question.type === 'weight') return observation.measurement === 'weight';
+      return false;
+    });
+    if (scientific) return { scientific: true, timestamp: scientific.timestamp, value: scientific };
+
     return events().slice().reverse().find(event => {
       const text = JSON.stringify(event.value || {}).toLowerCase();
       const type = String(event.type || '').toLowerCase();
@@ -115,6 +124,9 @@
   }
 
   function formatValue(event, question) {
+    if (event.scientific && Number.isFinite(Number(event.value?.value))) {
+      return `${Number(event.value.value).toFixed(2)} ${event.value.unit || ''}`.trim();
+    }
     const value = event.value || {};
 
     if (question.type === 'motion' || question.type === 'activity' || question.type === 'posture') {
